@@ -22,7 +22,7 @@ local LCIndex = 1   -- current index in queue
 if not HKSLootCouncilOptions then
 	HKSLootCouncilOptions = {
 		LCItemReceivedMsg = true,
-		LCNoteOnDrop = true,
+		LCNoteOnDrop = false,
 	}
 end
 
@@ -381,18 +381,6 @@ function ShowNextItemInQueue()
     end
 end
 
-function doesGMemberExist(nameInput)
-	for i = 1, 600 do 
-		local name = GetGuildRosterInfo(i)
-		if name and name == nameInput then
-			EmilPrint("true " .. name)
-			break
-		else
-			EmilPrint("Not found")
-		end	
-	end
-end
-
 ----------------[		USER INTERFACE			]----------------
 
 -- Close button creator
@@ -588,7 +576,7 @@ function HKSLootCouncil_OnEvent(event)
 		
 	elseif event == "LOOT_OPENED" then
 		local zone = GetRealZoneText()
-		if zone == "Tower of Karazhan" or zone == "The Rock of Desolation" or 1 == 1 then -- remove
+		if zone == "Tower of Karazhan" or zone == "The Rock of Desolation" then
 			
 			-- building the LC queue based on items in loot table matching with LC items..
 			local m, p, r = GetLootMethod()
@@ -611,7 +599,7 @@ function HKSLootCouncil_OnEvent(event)
 		
 	elseif event == "CHAT_MSG_LOOT" and ( string.find(arg1, "You receive loot") or string.find(arg1, "(.+) receives loot") ) then
 		local zone = GetRealZoneText()
-		if zone == "Tower of Karazhan" or zone == "The Rock of Desolation" or 1 == 1 then -- remove
+		if zone == "Tower of Karazhan" or zone == "The Rock of Desolation" then
 			if string.find(arg1, "You receive loot") then
 				local _, _, itemLink = string.find(arg1, "You receive loot: (.+).")
 				local _, _, itemName = string.find(itemLink, "%[(.+)%]")
@@ -629,9 +617,9 @@ function HKSLootCouncil_OnEvent(event)
 					
 					-- Sending loot messages to custom channel. Hkschatbot reads and sends to discord channel.
 					local m, p, r = GetLootMethod()
-					--if m == "master" and ( (p and p == 0) or (r and r == 0) ) then -- Only send msg to this channel if you are loot master yourself. (in case more ppl have addon).
-						--SendChatMessage(arg1custom, "CHANNEL", nil, HKSLC_ChannelID())
-					--end
+					if m == "master" and ( (p and p == 0) or (r and r == 0) ) then -- Only send msg to this channel if you are loot master yourself. (in case more ppl have addon).
+						SendChatMessage(arg1custom, "CHANNEL", nil, HKSLC_ChannelID())
+					end
 				end
 			else
 				local _, _, pName, itemLink = string.find(arg1, "(.+) receives loot: (.+).")
@@ -650,9 +638,9 @@ function HKSLootCouncil_OnEvent(event)
 					
 					-- Sending loot messages to custom channel. Hkschatbot reads and sends to discord channel.
 					local m, p, r = GetLootMethod()
-					--if m == "master" and ( (p and p == 0) or (r and r == 0) ) then -- Only send msg to this channel if you are loot master yourself. (in case more ppl have addon).
-						--SendChatMessage(arg1, "CHANNEL", nil, HKSLC_ChannelID())
-					--end
+					if m == "master" and ( (p and p == 0) or (r and r == 0) ) then -- Only send msg to this channel if you are loot master yourself. (in case more ppl have addon).
+						SendChatMessage(arg1, "CHANNEL", nil, HKSLC_ChannelID())
+					end
 				end
 			end
 		end
