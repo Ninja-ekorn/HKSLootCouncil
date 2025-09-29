@@ -9,3 +9,4 @@
 - It will also display messages for loot that is successfully distributed through the addon. Can be toggled on and off with in-game commands:
       "/run HKSLootCouncilOptions.LCItemReceivedMsg = false"	
       "/run HKSLootCouncilOptions.LCNoteOnDrop = false"
+- Fully compatible with RollFor addon.
