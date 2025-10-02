@@ -10,4 +10,5 @@
       "/run HKSLootCouncilOptions.LCItemReceivedMsg = false"	
       "/run HKSLootCouncilOptions.LCNoteOnDrop = false"
 - Fully compatible with RollFor addon.
+
 ![demo HKSLC](https://github.com/user-attachments/assets/e0811328-6bce-4b4c-a8c9-7a36fa99d037)
