@@ -15,8 +15,9 @@ NOTES:
 
 ----------------[		DECLARE VARIABLES		]----------------
 -- queue system
-local LCQueue = {}  -- holds items still to process
-local LCIndex = 1   -- current index in queue
+local LCQueue = {}  -- holds items still to process.
+local LCIndex = 1   -- current index in queue.
+local LCCount = 0	-- to display how many entires in table.
 
 -- options table.
 if not HKSLootCouncilOptions then
@@ -352,6 +353,7 @@ end
 
 local function BuildLCQueue()
     LCQueue = {}
+	LCCount = 0
     for itemIndex = 1, GetNumLootItems() do
         local _, lootName = GetLootSlotInfo(itemIndex)
         local itemLink = GetLootSlotLink(itemIndex)
@@ -364,13 +366,14 @@ local function BuildLCQueue()
                 topPlayers = top5,
 				itemTexture = itemIcon,
             })
+			LCCount = LCCount + 1
         end
     end
     LCIndex = 1
-    ShowNextItemInQueue()
+    HKSLootCouncil_ShowNextItemInQueue()
 end
 
-function ShowNextItemInQueue()
+function HKSLootCouncil_ShowNextItemInQueue()
     if LCQueue[LCIndex] then
         local entry = LCQueue[LCIndex]
         ShowMasterLooterFrame(entry.itemLink, entry.topPlayers, entry.itemIndex, entry.itemTexture)
@@ -391,7 +394,7 @@ local function CreateCloseButton(frame)
   closeButton:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -5, -5)
   closeButton:SetScript("OnClick", function()
 	LCIndex = LCIndex + 1
-	ShowNextItemInQueue()
+	HKSLootCouncil_ShowNextItemInQueue()
   end)
 end
 
@@ -470,6 +473,13 @@ local function CreateMLootFrame()
   frame.title:SetFont("Fonts\\FRIZQT__.TTF", 14, "OUTLINE")
   frame.title:SetText("|cffF24827HKS Loot Council:|r")
   
+  -- item index and table index at top left
+  frame.index = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+  frame.index:SetPoint("TOPLEFT", frame, "TOPLEFT", 10, -10)  -- adjust offset
+  frame.index:SetFont("Fonts\\FRIZQT__.TTF", 12, "OUTLINE")
+  frame.index:SetText("|cffFFFFFFItem: " .. LCIndex .. "/" .. LCCount .. "|r")
+  
+  
   -- attach the item label to the frame itself
   frame.itemLabel = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
   frame.itemLabel:SetPoint("TOP", frame, "TOP", 0, -45)
@@ -507,6 +517,8 @@ function ShowMasterLooterFrame(itemName, topPlayers, itemIndex, itemTexture)
 	masterLooterFrame.itemIcon:Hide()
   end
   
+  masterLooterFrame.title:SetText("|cffF24827HKS Loot Council:|r")
+  masterLooterFrame.index:SetText("|cffFFFFFFItem: " .. LCIndex .. "/" .. LCCount .. "|r")
   masterLooterFrame.itemLabel:SetText(itemName)
 
   masterLooterFrame:Show()
@@ -565,9 +577,10 @@ function HKSLootCouncil_OnEvent(event)
 	elseif event == "PLAYER_LOGIN" then
 		DEFAULT_CHAT_FRAME:AddMessage("|cffF24827[HKSLootCouncil]: |rAddon Loaded.")
 		-- Registering events.
-		this:RegisterEvent("LOOT_OPENED")
-		this:RegisterEvent("LOOT_CLOSED")
-		this:RegisterEvent("CHAT_MSG_LOOT")
+		this:RegisterEvent("LOOT_OPENED") 		-- Create the loot queue and scan items.
+		this:RegisterEvent("LOOT_CLOSED") 		-- Close any active loot windows or loot functions when you stop looting.
+		this:RegisterEvent("CHAT_MSG_LOOT")		-- Verify given items and go to the next item in queue/close custom loot frame.
+		this:RegisterEvent("CHAT_MSG_SYSTEM")	-- Catch messages when people trade items. For example after doing XMOG.
 		
 	elseif event == "LOOT_CLOSED" then
 		if masterLooterFrame:IsShown() then
@@ -597,6 +610,19 @@ function HKSLootCouncil_OnEvent(event)
 			end
 		end
 		
+	elseif event == "CHAT_MSG_SYSTEM" and string.find(arg1, "trades item") then
+		local zone = GetRealZoneText()
+		if zone == "Tower of Karazhan" or zone == "The Rock of Desolation" then
+			-- Sending loot messages to custom channel. Hkschatbot reads and sends to discord channel.
+			local m, p, r = GetLootMethod()
+			if m == "master" and ( (p and p == 0) or (r and r == 0) ) then -- Only send msg to this channel if you are loot master yourself. (in case more ppl have addon).
+				local ch = HKSLC_ChannelID()
+				if ch then
+					SendChatMessage(arg1, "CHANNEL", nil, ch)
+				end
+			end
+		end
+		
 	elseif event == "CHAT_MSG_LOOT" and ( string.find(arg1, "You receive loot") or string.find(arg1, "(.+) receives loot") ) then
 		local zone = GetRealZoneText()
 		if zone == "Tower of Karazhan" or zone == "The Rock of Desolation" then
@@ -607,18 +633,23 @@ function HKSLootCouncil_OnEvent(event)
 				
 					-- creating the LC loot frames.
 					LCIndex = LCIndex + 1
-					ShowNextItemInQueue()
+					HKSLootCouncil_ShowNextItemInQueue()
+					
+					local arg1custom = playerClassColorName .. " receives: " .. itemLink .. "." -- Show playerName with class color in HKSPrint msg.
+					local arg1custom2 = playerName .. " receives: " .. itemLink .. "." -- We dont need to send color formatted name to a channel that cant handle the formatting anyway. Just to be safe.
 					
 					-- Printing loot messages if options allow.
 					if HKSLootCouncilOptions.LCItemReceivedMsg then
-						local arg1custom = playerClassColorName .. " receives: " .. itemLink .. "."
 						HKSPrint(arg1custom)
 					end
 					
 					-- Sending loot messages to custom channel. Hkschatbot reads and sends to discord channel.
 					local m, p, r = GetLootMethod()
 					if m == "master" and ( (p and p == 0) or (r and r == 0) ) then -- Only send msg to this channel if you are loot master yourself. (in case more ppl have addon).
-						SendChatMessage(arg1custom, "CHANNEL", nil, HKSLC_ChannelID())
+						local ch = HKSLC_ChannelID()
+						if ch then
+							SendChatMessage(arg1custom2, "CHANNEL", nil, ch)
+						end
 					end
 				end
 			else
@@ -628,7 +659,7 @@ function HKSLootCouncil_OnEvent(event)
 				
 					-- creating the LC loot frames.
 					LCIndex = LCIndex + 1
-					ShowNextItemInQueue()
+					HKSLootCouncil_ShowNextItemInQueue()
 					
 					-- Printing loot messages if options allow.
 					if HKSLootCouncilOptions.LCItemReceivedMsg then
@@ -639,7 +670,10 @@ function HKSLootCouncil_OnEvent(event)
 					-- Sending loot messages to custom channel. Hkschatbot reads and sends to discord channel.
 					local m, p, r = GetLootMethod()
 					if m == "master" and ( (p and p == 0) or (r and r == 0) ) then -- Only send msg to this channel if you are loot master yourself. (in case more ppl have addon).
-						SendChatMessage(arg1, "CHANNEL", nil, HKSLC_ChannelID())
+						local ch = HKSLC_ChannelID()
+						if ch then
+							SendChatMessage(arg1, "CHANNEL", nil, ch)
+						end
 					end
 				end
 			end
