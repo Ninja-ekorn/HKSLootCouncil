@@ -24,6 +24,7 @@ if not HKSLootCouncilOptions then
 	HKSLootCouncilOptions = {
 		LCItemReceivedMsg = true,
 		LCNoteOnDrop = false,
+		DiscordMSG = true,
 	}
 end
 
@@ -502,7 +503,7 @@ local function CreateMLootFrame()
   frame.title = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
   frame.title:SetPoint("TOP", frame, "TOP", 0, -10)  -- adjust offset
   frame.title:SetFont("Fonts\\FRIZQT__.TTF", 14, "OUTLINE")
-  frame.title:SetText("|cffF24827HKS Loot Council:|r")
+  frame.title:SetText("|cffF24827HKS Loot Helper:|r")
   
   -- item index and table index at top left
   frame.index = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
@@ -548,7 +549,7 @@ function ShowMasterLooterFrame(itemName, topPlayers, itemIndex, itemTexture)
 	masterLooterFrame.itemIcon:Hide()
   end
   
-  masterLooterFrame.title:SetText("|cffF24827HKS Loot Council:|r")
+  masterLooterFrame.title:SetText("|cffF24827HKS Loot Helper:|r")
   masterLooterFrame.index:SetText("|cffFFFFFFItem: " .. LCIndex .. "/" .. LCCount .. "|r")
   masterLooterFrame.itemLabel:SetText(itemName)
 
@@ -569,7 +570,7 @@ function HKSLootCouncil_MinimapButton_OnEnter(self)
 	HKSLootCouncil_MinimapButton_Details(GameTooltip)
 end
 function HKSLootCouncil_MinimapButton_Details(HKSLootCouncil, ldb)
-	HKSLootCouncil:SetText("HKSLootCouncil Addon!\n|cffFFFFFFA loot council addon.")
+	HKSLootCouncil:SetText("HKSLootCouncil Addon!\n|cffFFFFFFA loot Helper addon.")
 end
 -- Drag function for minimap button
 if not HKSLootCouncil_MinimapPos then
@@ -594,8 +595,22 @@ end
 
 ----------------[		LOAD ADDON				]----------------
 function HKSLootCouncil_OnLoad()
-	this:RegisterEvent("ADDON_LOADED");
-	this:RegisterEvent("PLAYER_LOGIN");
+	this:RegisterEvent("ADDON_LOADED")
+	this:RegisterEvent("PLAYER_LOGIN")
+	
+	SLASH_HKSLootHelper1 = "/hks"
+	SlashCmdList["HKSLootHelper"] = HKSLootHelper_Command;
+end
+
+----------------[		COMMAND			]----------------
+function HKSLootHelper_Command()
+	if HKSLootCouncilOptions.DiscordMSG then
+		HKSLootCouncilOptions.DiscordMSG = false
+		HKSPrint("Will NOT post loot messages to discord!")
+	else
+		HKSLootCouncilOptions.DiscordMSG = true
+		HKSPrint("Will post loot messages to discord!")
+	end
 end
 
 ----------------[		EVENT HANDLER			]----------------
@@ -606,7 +621,7 @@ function HKSLootCouncil_OnEvent(event)
 		HKSLC_ChannelID() -- we run it on startup because it joins the channel if we are not in it
 		
 	elseif event == "PLAYER_LOGIN" then
-		DEFAULT_CHAT_FRAME:AddMessage("|cffF24827[HKSLootHelper]: |rAddon Loaded.")
+		DEFAULT_CHAT_FRAME:AddMessage("|cffF24827[HKSLootHelper]: |rAddon Loaded! type /hks for options.")
 		-- Registering events.
 		this:RegisterEvent("LOOT_OPENED") 		-- Create the loot queue and scan items.
 		this:RegisterEvent("LOOT_CLOSED") 		-- Close any active loot windows or loot functions when you stop looting.
@@ -712,7 +727,6 @@ function HKSLootCouncil_OnEvent(event)
 		elseif zone == "Molten Core" or zone == "Ruins of Ahn'Qiraj" or zone == "Temple of Ahn'Qiraj" or zone == "Blackwing Lair" or zone == "Emerald Sanctum" then
 			-- API GetItemInfo
 			-- local itemName, _, itemRarity = GetItemInfo(itemLink)
-			-- Make an option to turn tracking on and off by in-game commands. /hks tracking on /hks tracking off
 			-- add .. " → " .. zone .. "." to senchatmessage functions.
 		end
 	end
