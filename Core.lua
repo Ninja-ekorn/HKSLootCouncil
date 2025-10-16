@@ -62,6 +62,12 @@ local trackedRecipes = {
 	["Schematic: Biznicks 247x128 Accurascope"] = true,
 	["Schematic: Force Reactive Disk"] = true,
 	["Schematic: Core Marksman Rifle"] = true,
+	["Formula: Eternal Dreamstone Shard"] = true,
+	["Pattern: Dreamthread Mantle"] = true,
+	["Pattern: Dreamhide Mantle"] = true,
+	["Plans: Dreamsteel Mantle"] = true,
+	["Recipe: Elixir of Greater Nature Power"] = true,
+	["Formula: Enchant Chest - Mighty Mana"] = true,
 }
 
 
@@ -658,10 +664,14 @@ function HKSLootCouncil_OnEvent(event)
 		
 	elseif event == "CHAT_MSG_SYSTEM" and string.find(arg1, "trades item") then
 		local zone = GetRealZoneText()
-		if zone == "Tower of Karazhan" or zone == "The Rock of Desolation" then
+		if zone == "Tower of Karazhan" or zone == "The Rock of Desolation" or zone == "Molten Core" or zone == "Ruins of Ahn'Qiraj"
+		or zone == "Temple of Ahn'Qiraj" or zone == "Blackwing Lair" or zone == "Emerald Sanctum" then
 			-- Sending loot messages to custom channel. Hkschatbot reads and sends to discord channel.
 			local m, p, r = GetLootMethod()
-			if m == "master" and ( (p and p == 0) or (r and r == 0) ) then -- Only send msg to this channel if you are loot master yourself. (in case more ppl have addon).
+			local discord = HKSLootCouncilOptions.DiscordMSG
+			if (m == "master" and ( (p and p == 0) or (r and r == 0) ) and discord)
+			or (discord and itemName == "Heart of Mephistroth")
+			then -- Only send msg to this channel if you are loot master yourself. (in case more ppl have addon). then -- Only send msg to this channpl have addon).
 				local ch = HKSLC_ChannelID()
 				if ch then
 					SendChatMessage(arg1, "CHANNEL", nil, ch)
@@ -691,7 +701,10 @@ function HKSLootCouncil_OnEvent(event)
 					
 					-- Sending loot messages to custom channel. Hkschatbot reads and sends to discord channel.
 					local m, p, r = GetLootMethod()
-					if m == "master" and ( (p and p == 0) or (r and r == 0) ) then -- Only send msg to this channel if you are loot master yourself. (in case more ppl have addon).
+					local discord = HKSLootCouncilOptions.DiscordMSG
+					if (m == "master" and ( (p and p == 0) or (r and r == 0) ) and discord)
+					or (discord and itemName == "Heart of Mephistroth")
+					then -- Only send msg to this channel if you are loot master yourself. (in case more ppl have addon). or if you are not, but have discord messages enabled and a specific item is looted.
 						local ch = HKSLC_ChannelID()
 						if ch then
 							SendChatMessage(arg1custom2, "CHANNEL", nil, ch)
@@ -715,7 +728,10 @@ function HKSLootCouncil_OnEvent(event)
 					
 					-- Sending loot messages to custom channel. Hkschatbot reads and sends to discord channel.
 					local m, p, r = GetLootMethod()
-					if m == "master" and ( (p and p == 0) or (r and r == 0) ) then -- Only send msg to this channel if you are loot master yourself. (in case more ppl have addon).
+					local discord = HKSLootCouncilOptions.DiscordMSG
+					if (m == "master" and ( (p and p == 0) or (r and r == 0) ) and discord)
+					or (discord and itemName == "Heart of Mephistroth")
+					then -- Only send msg to this channel if you are loot master yourself. (in case more ppl have addon). or if you are not, but have discord messages enabled and a specific item is looted.
 						local ch = HKSLC_ChannelID()
 						if ch then
 							SendChatMessage(arg1, "CHANNEL", nil, ch)
@@ -723,11 +739,58 @@ function HKSLootCouncil_OnEvent(event)
 					end
 				end
 			end
-		-- All other zones. Maybe integrate.
+		------------------------------------------------- All other zones. ------------------------------------------------------------
 		elseif zone == "Molten Core" or zone == "Ruins of Ahn'Qiraj" or zone == "Temple of Ahn'Qiraj" or zone == "Blackwing Lair" or zone == "Emerald Sanctum" then
-			-- API GetItemInfo
-			-- local itemName, _, itemRarity = GetItemInfo(itemLink)
-			-- add .. " → " .. zone .. "." to senchatmessage functions.
+			if string.find(arg1, "You receive loot") then
+				local _, _, itemLink = string.find(arg1, "You receive loot: (.+).")
+				local _, _, itemName = string.find(itemLink, "%[(.+)%]")			
+				local arg1custom = playerClassColorName .. " receives: " .. itemLink .. "." -- Show playerName with class color in HKSPrint msg.
+				local arg1custom2 = playerName .. " receives: " .. itemLink .. "." -- We dont need to send color formatted name to a channel that cant handle the formatting anyway. Just to be safe.
+				local itemName2, _, itemRarity = GetItemInfo(itemLink)
+				if isItemInRecipeTables(itemName) or itemRarity == 5 or itemRarity == 6 then -- Check for custom blues (recipes so far) or epic and legendary items.
+				
+					-- Sending loot messages to custom channel. Hkschatbot reads and sends to discord channel.
+					local m, p, r = GetLootMethod()
+					local discord = HKSLootCouncilOptions.DiscordMSG
+					if (m == "master" and ( (p and p == 0) or (r and r == 0) ) and discord)
+					or (discord and itemName == "Heart of Mephistroth")
+					then -- Only send msg to this channel if you are loot master yourself. (in case more ppl have addon). or if you are not, but have discord messages enabled and a specific item is looted.
+						local ch = HKSLC_ChannelID()
+						if ch then
+							SendChatMessage(arg1custom2 .. " → " .. zone .. ".", "CHANNEL", nil, ch)
+						end
+					end
+					
+					-- Printing loot messages if options allow.
+					if HKSLootCouncilOptions.LCItemReceivedMsg then
+						HKSPrint(arg1custom)
+					end
+				end
+			else
+				local _, _, pName, itemLink = string.find(arg1, "(.+) receives loot: (.+).")
+				local _, _, itemName = string.find(itemLink, "%[(.+)%]")
+				local itemName2, _, itemRarity = GetItemInfo(itemLink)
+				if isItemInRecipeTables(itemName) or itemRarity == 5 or itemRarity == 6 then -- Check for custom blues (recipes so far) or epic and legendary items.
+					
+					-- Printing loot messages if options allow.
+					if HKSLootCouncilOptions.LCItemReceivedMsg then
+						local colorName = GetColoredPlayerName(pName)
+						HKSPrint(colorName .. " receives loot: " .. itemLink .. ".")
+					end
+					
+					-- Sending loot messages to custom channel. Hkschatbot reads and sends to discord channel.
+					local m, p, r = GetLootMethod()
+					local discord = HKSLootCouncilOptions.DiscordMSG
+					if (m == "master" and ( (p and p == 0) or (r and r == 0) ) and discord)
+					or (discord and itemName == "Heart of Mephistroth")
+					then -- Only send msg to this channel if you are loot master yourself. (in case more ppl have addon).
+						local ch = HKSLC_ChannelID()
+						if ch then
+							SendChatMessage(arg1 .. " → " .. zone .. ".", "CHANNEL", nil, ch)
+						end
+					end
+				end
+			end
 		end
 	end
 end
