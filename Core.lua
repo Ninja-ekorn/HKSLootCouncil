@@ -633,6 +633,16 @@ function HKSLootCouncil_OnEvent(event)
 		this:RegisterEvent("LOOT_CLOSED") 		-- Close any active loot windows or loot functions when you stop looting.
 		this:RegisterEvent("CHAT_MSG_LOOT")		-- Verify given items and go to the next item in queue/close custom loot frame.
 		this:RegisterEvent("CHAT_MSG_SYSTEM")	-- Catch messages when people trade items. For example after doing XMOG.
+		this:RegisterEvent("CHAT_MSG_SAY")
+		
+	elseif event == "CHAT_MSG_SAY" then
+		local _, _, itemLink = string.find(arg1, "(\124c.-\124h%[.+%]\124h\124r)") -- GPT made this shit, but it works.
+		if itemLink then
+			local color = string.sub(itemLink, 5, 10) -- grabs 6 hex digits after |cff
+			local _, _, itemName = string.find(itemLink, "%[(.+)%]")
+
+			DEFAULT_CHAT_FRAME:AddMessage("Item: " .. (itemName or "?") .. " | Color: " .. color)
+		end
 		
 	elseif event == "LOOT_CLOSED" then
 		if masterLooterFrame:IsShown() then
@@ -742,51 +752,65 @@ function HKSLootCouncil_OnEvent(event)
 		------------------------------------------------- All other zones. ------------------------------------------------------------
 		elseif zone == "Molten Core" or zone == "Ruins of Ahn'Qiraj" or zone == "Temple of Ahn'Qiraj" or zone == "Blackwing Lair" or zone == "Emerald Sanctum" then
 			if string.find(arg1, "You receive loot") then
-				local _, _, itemLink = string.find(arg1, "You receive loot: (.+).")
-				local _, _, itemName = string.find(itemLink, "%[(.+)%]")			
-				local arg1custom = playerClassColorName .. " receives: " .. itemLink .. "." -- Show playerName with class color in HKSPrint msg.
-				local arg1custom2 = playerName .. " receives: " .. itemLink .. "." -- We dont need to send color formatted name to a channel that cant handle the formatting anyway. Just to be safe.
-				local itemName2, _, itemRarity = GetItemInfo(itemLink)
-				if isItemInRecipeTables(itemName) or itemRarity == 5 or itemRarity == 6 then -- Check for custom blues (recipes so far) or epic and legendary items.
+				local _, _, itemLink = string.find(arg1, "(\124c.-\124h%[.+%]\124h\124r)") -- GPT made this shit, but it works.
+				if itemLink then
+					local color = string.sub(itemLink, 5, 10) -- grabs 6 hex digits after |cff
+					local _, _, itemName = string.find(itemLink, "%[(.+)%]")
+					local arg1custom = playerClassColorName .. " receives: " .. itemLink .. "." -- Show playerName with class color in HKSPrint msg.
+					local arg1custom2 = playerName .. " receives: " .. itemLink .. "." -- We dont need to send color formatted name to a channel that cant handle the formatting anyway. Just to be safe.
+					if isItemInRecipeTables(itemName) or color == "a335ee" or color == "ff8000" then -- Check for custom blues (recipes so far) or epic and legendary items.
 				
-					-- Sending loot messages to custom channel. Hkschatbot reads and sends to discord channel.
-					local m, p, r = GetLootMethod()
-					local discord = HKSLootCouncilOptions.DiscordMSG
-					if (m == "master" and ( (p and p == 0) or (r and r == 0) ) and discord)
-					or (discord and itemName == "Heart of Mephistroth")
-					then -- Only send msg to this channel if you are loot master yourself. (in case more ppl have addon). or if you are not, but have discord messages enabled and a specific item is looted.
-						local ch = HKSLC_ChannelID()
-						if ch then
-							SendChatMessage(arg1custom2 .. " → " .. zone .. ".", "CHANNEL", nil, ch)
+						-- Sending loot messages to custom channel. Hkschatbot reads and sends to discord channel.
+						local m, p, r = GetLootMethod()
+						local discord = HKSLootCouncilOptions.DiscordMSG
+						if (m == "master" and ( (p and p == 0) or (r and r == 0) ) and discord)
+						or (discord and itemName == "Heart of Mephistroth")
+						then -- Only send msg to this channel if you are loot master yourself. (in case more ppl have addon). or if you are not, but have discord messages enabled and a specific item is looted.
+							local ch = HKSLC_ChannelID()
+							if ch then
+								SendChatMessage(arg1custom2 .. " → " .. zone .. ".", "CHANNEL", nil, ch)
+							end
+						end
+						
+						-- Printing loot messages if options allow.
+						if HKSLootCouncilOptions.LCItemReceivedMsg then
+							if discord then
+								HKSPrint(arg1custom .. " → Sent to Discord!")
+							else
+								HKSPrint(arg1custom)
+							end
 						end
 					end
-					
-					-- Printing loot messages if options allow.
-					if HKSLootCouncilOptions.LCItemReceivedMsg then
-						HKSPrint(arg1custom)
-					end
 				end
-			else
-				local _, _, pName, itemLink = string.find(arg1, "(.+) receives loot: (.+).")
-				local _, _, itemName = string.find(itemLink, "%[(.+)%]")
-				local itemName2, _, itemRarity = GetItemInfo(itemLink)
-				if isItemInRecipeTables(itemName) or itemRarity == 5 or itemRarity == 6 then -- Check for custom blues (recipes so far) or epic and legendary items.
-					
-					-- Printing loot messages if options allow.
-					if HKSLootCouncilOptions.LCItemReceivedMsg then
-						local colorName = GetColoredPlayerName(pName)
-						HKSPrint(colorName .. " receives loot: " .. itemLink .. ".")
-					end
-					
-					-- Sending loot messages to custom channel. Hkschatbot reads and sends to discord channel.
-					local m, p, r = GetLootMethod()
-					local discord = HKSLootCouncilOptions.DiscordMSG
-					if (m == "master" and ( (p and p == 0) or (r and r == 0) ) and discord)
-					or (discord and itemName == "Heart of Mephistroth")
-					then -- Only send msg to this channel if you are loot master yourself. (in case more ppl have addon).
-						local ch = HKSLC_ChannelID()
-						if ch then
-							SendChatMessage(arg1 .. " → " .. zone .. ".", "CHANNEL", nil, ch)
+			elseif string.find(arg1, "receives loot:") then
+				local _, _, itemLink = string.find(arg1, "(\124c.-\124h%[.+%]\124h\124r)") -- GPT made this shit, but it works.
+				if itemLink then
+					local color = string.sub(itemLink, 5, 10) -- grabs 6 hex digits after |cff
+					local _, _, itemName = string.find(itemLink, "%[(.+)%]")
+					local _, _, pName = string.find(arg1, "(.+) receives loot:")
+					if not pName or not itemName then return end
+					if isItemInRecipeTables(itemName) or color == "a335ee" or color == "ff8000" then -- Check for custom blues (recipes so far) or epic and legendary items.
+							-- Sending loot messages to custom channel. Hkschatbot reads and sends to discord channel.
+							local m, p, r = GetLootMethod()
+							local discord = HKSLootCouncilOptions.DiscordMSG
+							if (m == "master" and ( (p and p == 0) or (r and r == 0) ) and discord)
+							or (discord and itemName == "Heart of Mephistroth")
+							then -- Only send msg to this channel if you are loot master yourself. (in case more ppl have addon).
+								local ch = HKSLC_ChannelID()
+								if ch then
+									SendChatMessage(arg1 .. " → " .. zone .. ".", "CHANNEL", nil, ch)
+								end
+							end
+							
+							-- Printing loot messages if options allow.
+							if HKSLootCouncilOptions.LCItemReceivedMsg then
+								local colorName = GetColoredPlayerName(pName)
+								if discord then
+									HKSPrint(colorName .. " receives loot: " .. itemLink .. ". → Sent to Discord!")
+								else
+									HKSPrint(colorName .. " receives loot: " .. itemLink .. ".")
+								end
+							end
 						end
 					end
 				end
