@@ -1,4 +1,4 @@
---[[ An Addon for Loot Council, for Hard Knocks Society.
+--[[ An Addon for Loot Council and tracking.
 TODO:		
 		- Make it edit EP/GP too.
 		
@@ -40,6 +40,30 @@ local K40Bosses = {
 	["Mephistroth"] = true,
 }
 
+local trackedRecipes = {
+	["Formula: Enchant Gloves - Arcane Power"] = true,
+	["Formula: Enchant Gloves - Fire Power"] = true,
+	["Formula: Enchant Gloves - Frost Power"] = true,
+	["Formula: Enchant Gloves - Healing Power"] = true,
+	["Formula: Enchant Gloves - Holy Power"] = true,
+	["Formula: Enchant Gloves - Nature Power"] = true,
+	["Formula: Enchant Gloves - Shadow Power"] = true,
+	["Formula: Enchant Gloves - Superior Agility"] = true,
+	["Formula: Enchant Gloves - Threat"] = true,
+	["Formula: Enchant Cloak - Stealth"] = true,
+	["Formula: Enchant Cloak - Dodge"] = true,
+	["Formula: Enchant Weapon - Healing Power"] = true,
+	["Formula: Enchant Weapon - Spell Power"] = true,
+	["Plans: Elemental Sharpening Stone"] = true,
+	["Pattern: Core Felcloth Bag"] = true,
+	["Pattern: Core Armor Kit"] = true,
+	["Pattern: Flarecore Wraps"] = true,
+	["Schematic: Biznicks 247x128 Accurascope"] = true,
+	["Schematic: Force Reactive Disk"] = true,
+	["Schematic: Core Marksman Rifle"] = true,
+}
+
+
 -- for the ML ui stuff. 
 local BUTTON_WIDTH   = 85
 local BUTTON_HEIGHT  = 32
@@ -64,7 +88,7 @@ local playerClassColorName = color .. playerName .. "|r"
 
 ----------------[		FUNCTIONS		]----------------
 function HKSPrint(msg)
-	DEFAULT_CHAT_FRAME:AddMessage("|cffF24827[HKSLootCouncil]: |r" .. msg)
+	DEFAULT_CHAT_FRAME:AddMessage("|cffF24827[HKSLootHelper]: |r" .. msg)
 end
 
 local function GetColoredPlayerName(playerName)
@@ -301,6 +325,13 @@ local function isItemInLCTables(itemName)
     end
 
     return false
+end
+
+local function isItemInRecipeTables(itemName)
+	-- Check recipes (not >= epic threshold)
+	if trackedRecipes[itemName] then
+		return true
+	end
 end
 
 local function topFiveWishListForItem(itemName)
@@ -575,7 +606,7 @@ function HKSLootCouncil_OnEvent(event)
 		HKSLC_ChannelID() -- we run it on startup because it joins the channel if we are not in it
 		
 	elseif event == "PLAYER_LOGIN" then
-		DEFAULT_CHAT_FRAME:AddMessage("|cffF24827[HKSLootCouncil]: |rAddon Loaded.")
+		DEFAULT_CHAT_FRAME:AddMessage("|cffF24827[HKSLootHelper]: |rAddon Loaded.")
 		-- Registering events.
 		this:RegisterEvent("LOOT_OPENED") 		-- Create the loot queue and scan items.
 		this:RegisterEvent("LOOT_CLOSED") 		-- Close any active loot windows or loot functions when you stop looting.
@@ -629,7 +660,7 @@ function HKSLootCouncil_OnEvent(event)
 			if string.find(arg1, "You receive loot") then
 				local _, _, itemLink = string.find(arg1, "You receive loot: (.+).")
 				local _, _, itemName = string.find(itemLink, "%[(.+)%]")
-				if isItemInLCTables(itemName) and masterLooterFrame:IsShown() then
+				if isItemInLCTables(itemName) then
 				
 					-- creating the LC loot frames.
 					LCIndex = LCIndex + 1
@@ -655,7 +686,7 @@ function HKSLootCouncil_OnEvent(event)
 			else
 				local _, _, pName, itemLink = string.find(arg1, "(.+) receives loot: (.+).")
 				local _, _, itemName = string.find(itemLink, "%[(.+)%]")
-				if isItemInLCTables(itemName) and masterLooterFrame:IsShown() then
+				if isItemInLCTables(itemName) then
 				
 					-- creating the LC loot frames.
 					LCIndex = LCIndex + 1
@@ -677,6 +708,12 @@ function HKSLootCouncil_OnEvent(event)
 					end
 				end
 			end
+		-- All other zones. Maybe integrate.
+		elseif zone == "Molten Core" or zone == "Ruins of Ahn'Qiraj" or zone == "Temple of Ahn'Qiraj" or zone == "Blackwing Lair" or zone == "Emerald Sanctum" then
+			-- API GetItemInfo
+			-- local itemName, _, itemRarity = GetItemInfo(itemLink)
+			-- Make an option to turn tracking on and off by in-game commands. /hks tracking on /hks tracking off
+			-- add .. " → " .. zone .. "." to senchatmessage functions.
 		end
 	end
 end
