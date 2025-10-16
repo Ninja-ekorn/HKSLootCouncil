@@ -790,26 +790,25 @@ function HKSLootCouncil_OnEvent(event)
 					local _, _, pName = string.find(arg1, "(.+) receives loot:")
 					if not pName or not itemName then return end
 					if isItemInRecipeTables(itemName) or color == "a335ee" or color == "ff8000" then -- Check for custom blues (recipes so far) or epic and legendary items.
-							-- Sending loot messages to custom channel. Hkschatbot reads and sends to discord channel.
-							local m, p, r = GetLootMethod()
-							local discord = HKSLootCouncilOptions.DiscordMSG
-							if (m == "master" and ( (p and p == 0) or (r and r == 0) ) and discord)
-							or (discord and itemName == "Heart of Mephistroth")
-							then -- Only send msg to this channel if you are loot master yourself. (in case more ppl have addon).
-								local ch = HKSLC_ChannelID()
-								if ch then
-									SendChatMessage(arg1 .. " → " .. zone .. ".", "CHANNEL", nil, ch)
-								end
+						-- Sending loot messages to custom channel. Hkschatbot reads and sends to discord channel.
+						local m, p, r = GetLootMethod()
+						local discord = HKSLootCouncilOptions.DiscordMSG
+						if (m == "master" and ( (p and p == 0) or (r and r == 0) ) and discord)
+						or (discord and itemName == "Heart of Mephistroth")
+						then -- Only send msg to this channel if you are loot master yourself. (in case more ppl have addon).
+							local ch = HKSLC_ChannelID()
+							if ch then
+								SendChatMessage(arg1 .. " → " .. zone .. ".", "CHANNEL", nil, ch)
 							end
-							
-							-- Printing loot messages if options allow.
-							if HKSLootCouncilOptions.LCItemReceivedMsg then
-								local colorName = GetColoredPlayerName(pName)
-								if discord then
-									HKSPrint(colorName .. " receives loot: " .. itemLink .. ". → Sent to Discord!")
-								else
-									HKSPrint(colorName .. " receives loot: " .. itemLink .. ".")
-								end
+						end
+						
+						-- Printing loot messages if options allow.
+						if HKSLootCouncilOptions.LCItemReceivedMsg then
+							local colorName = GetColoredPlayerName(pName)
+							if discord then
+								HKSPrint(colorName .. " receives loot: " .. itemLink .. ". → Sent to Discord!")
+							else
+								HKSPrint(colorName .. " receives loot: " .. itemLink .. ".")
 							end
 						end
 					end
