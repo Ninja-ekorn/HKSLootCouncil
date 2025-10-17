@@ -1,3 +1,5 @@
+![demo HKSLC](https://github.com/user-attachments/assets/e0811328-6bce-4b4c-a8c9-7a36fa99d037)
+
 ## Description: ##
 - The addon uses the lua file called LCTable.lua to read entries and match name of bosses, loot tables and other items, such a trash loot drops.
 - When you start looting, the addon scans all drops for matches in the table, and if it finds it, it puts the item in a frame/window, along with the top 5 people on the LC list for that item. The master looter can then click any of the player names to give the item directly.
@@ -7,4 +9,3 @@
       "/run HKSLootCouncilOptions.LCNoteOnDrop = false"
 - Fully compatible with RollFor addon.
 
-![demo HKSLC](https://github.com/user-attachments/assets/e0811328-6bce-4b4c-a8c9-7a36fa99d037)
