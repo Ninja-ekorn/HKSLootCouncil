@@ -10,7 +10,6 @@ TODO:
 NOTES:	
 			Turning off messages:
 		- 	/run HKSLootCouncilOptions.LCItemReceivedMsg = false
-		-	/run HKSLootCouncilOptions.LCNoteOnDrop = false
 ]]
 
 ----------------[		DECLARE VARIABLES		]----------------
@@ -23,12 +22,12 @@ local LCCount = 0	-- to display how many entires in table.
 if not HKSLootCouncilOptions then
 	HKSLootCouncilOptions = {
 		LCItemReceivedMsg = true,
-		LCNoteOnDrop = false,
+		--LCNoteOnDrop = false,
 		DiscordMSG = true,
 	}
 end
 
--- bosses table. to seperate bosses who can drop neck and those who cant.
+--[[ bosses table. to seperate bosses who can drop neck and those who cant.
 local K40Bosses = {
 	["Keeper Gnarlmoon"] = false,
 	["Ley-Watcher Incantagos"] = false,
@@ -40,6 +39,7 @@ local K40Bosses = {
 	["Kruul"] = true,
 	["Mephistroth"] = true,
 }
+]]
 
 local trackedRecipes = {
 	["Formula: Enchant Gloves - Arcane Power"] = true,
@@ -69,7 +69,6 @@ local trackedRecipes = {
 	["Recipe: Elixir of Greater Nature Power"] = true,
 	["Formula: Enchant Chest - Mighty Mana"] = true,
 }
-
 
 -- for the ML ui stuff. 
 local BUTTON_WIDTH   = 85
@@ -115,7 +114,7 @@ local function GetColoredPlayerName(playerName)
     return "|cffFF0000" .. playerName .. "|r"
 end
 
-function HKSLootCouncil_PrintAllLoot()
+--[[function HKSLootCouncil_PrintAllLoot() -- Only used for testing
     -- 1) Boss loot
     if HKSBossLCData then
         for bossName, bossTable in pairs(HKSBossLCData) do
@@ -183,9 +182,9 @@ function HKSLootCouncil_PrintAllLoot()
     else
         HKSPrint("No HKSTrashLootLCData found.")
     end
-end
+end]]
 
-function HKSLootCouncil_PrintBossLoot(bossName)
+--[[function HKSLootCouncil_PrintBossLoot(bossName) -- Used for testing purposes only.
     if not HKSBossLCData then
         HKSPrint("HardKnocksSocietyLCData is empty or missing.")
         return
@@ -218,7 +217,7 @@ function HKSLootCouncil_PrintBossLoot(bossName)
         local list = table.concat(numbered, ", ")
         DEFAULT_CHAT_FRAME:AddMessage("   |cFFE2725B["..itemName.."]|r → "..list)
     end
-end
+end]]
 
 function HKSLootCouncil_PrintDroppedLoot(bossName, lootType)
     local numLoot = GetNumLootItems()
@@ -369,11 +368,17 @@ local function topFiveWishListForItem(itemName)
     end
 
     -- Check HKSTrashLootLCData (flat table)
-    list = HKSTrashLootLCData[itemName]
-    if list then
-        return getTop5(list)
+    local list2 = HKSTrashLootLCData[itemName]
+    if list2 then
+        return getTop5(list2)
     end
-
+	
+	-- check whoDidItLCData (flat table) (for ambershire people so far)
+	local list3 = whoDidItLCData[itemName] 
+    if list3 then
+        return getTop5(list3)
+    end
+	
     return nil
 end
 
@@ -651,7 +656,8 @@ function HKSLootCouncil_OnEvent(event)
 		
 	elseif event == "LOOT_OPENED" then
 		local zone = GetRealZoneText()
-		if zone == "Tower of Karazhan" or zone == "The Rock of Desolation" then
+		if zone == "Tower of Karazhan" or zone == "The Rock of Desolation" or zone == "Tower of Karazhan" or zone == "The Rock of Desolation" or zone == "Molten Core"
+		or zone == "Ruins of Ahn'Qiraj" or zone == "Temple of Ahn'Qiraj" or zone == "Blackwing Lair" or zone == "Emerald Sanctum" then
 			
 			-- building the LC queue based on items in loot table matching with LC items..
 			local m, p, r = GetLootMethod()
@@ -659,7 +665,7 @@ function HKSLootCouncil_OnEvent(event)
 				BuildLCQueue()
 			end
 			
-			if HKSLootCouncilOptions.LCNoteOnDrop then
+			--[[if HKSLootCouncilOptions.LCNoteOnDrop then
 				-- Printing loot drops relevant to LC list in default chat frame.
 				local name = UnitName("target")
 				if K40Bosses[name] == true then -- true are boss keys who has Ephemeral necklace in their loot table.
@@ -669,7 +675,7 @@ function HKSLootCouncil_OnEvent(event)
 				else -- handle trash loot
 					HKSLootCouncil_PrintDroppedLoot(name, "trashLoot")
 				end
-			end
+			end]]
 		end
 		
 	elseif event == "CHAT_MSG_SYSTEM" and string.find(arg1, "trades item") then
