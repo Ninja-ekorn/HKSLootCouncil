@@ -24,6 +24,7 @@ if not HKSLootCouncilOptions then
 		LCItemReceivedMsg = true,
 		--LCNoteOnDrop = false,
 		DiscordMSG = true,
+		PostWhenNotML = false,
 	}
 end
 
@@ -43,12 +44,8 @@ local K40Bosses = {
 
 local trackedRecipes = {
 	["Formula: Enchant Gloves - Arcane Power"] = true,
-	["Formula: Enchant Gloves - Fire Power"] = true,
-	["Formula: Enchant Gloves - Frost Power"] = true,
-	["Formula: Enchant Gloves - Healing Power"] = true,
 	["Formula: Enchant Gloves - Holy Power"] = true,
 	["Formula: Enchant Gloves - Nature Power"] = true,
-	["Formula: Enchant Gloves - Shadow Power"] = true,
 	["Formula: Enchant Gloves - Superior Agility"] = true,
 	["Formula: Enchant Gloves - Threat"] = true,
 	["Formula: Enchant Cloak - Stealth"] = true,
@@ -68,6 +65,278 @@ local trackedRecipes = {
 	["Plans: Dreamsteel Mantle"] = true,
 	["Recipe: Elixir of Greater Nature Power"] = true,
 	["Formula: Enchant Chest - Mighty Mana"] = true,
+	["Formula: Enchant Cloak - Subtlety"] = true,
+}
+local alwaysPostItem = {
+	["Red Qiraji Resonating Crystal"] = true,
+	["Dream Frog"] = true,
+	["Leggings of Polarity"] = true,
+	["Eye of Diminution"] = true,
+	["Rime Covered Mantle"] = true,
+	["Death's Bargain"] = true,
+	["Cloak of Suturing"] = true,
+	["Band of Unanswered Prayers"] = true,
+	["Kiss of the Spider"] = true,
+	["Totem of Flowing Water"] = true,
+	["Legplates of Carnage"] = true,
+	["Ring of Unnatural Forces"] = true,
+	["Girdle of the Mentor"] = true,
+	["Iblis, Blade of the Fallen Seraph"] = true,
+	["Corrupted Ashbringer"] = true,
+	["Seal of the Damned"] = true,
+	["Heart of Mephistroth"] = true,
+}
+local neverPostItem = {
+	-- Naxxramas
+	["The Phylactery of Kel'Thuzad"] = true,
+	["Power of the Scourge"] = true,
+	["Resilience of the Scourge"] = true,
+	["Might of the Scourge"] = true,
+	["Fortitude of the Scourge"] = true,
+
+	["Belt of the Grand Crusader"] = true,
+	["Ghoul Skin Tunic"] = true,
+	["Girdle of Elemental Fury"] = true,
+	["Harbinger of Doom"] = true,
+	["Leggings of Elemental Fury"] = true,
+	["Leggings of the Grand Crusader"] = true,
+	["Misplaced Servo Arm"] = true,
+	["Necro-Knight's Garb"] = true,
+	["Pauldrons of Elemental Fury"] = true,
+	["Spaulders of the Grand Crusader"] = true,
+	["Stygian Buckler"] = true,
+	["Ring of the Eternal Flame"] = true,
+
+	-- Aq40
+	["Barrage Shoulders"] = true,
+	["Beetle Scaled Wristguards"] = true,
+	["Leggings of Immersion"] = true,
+	["Boots of the Fallen Prophet"] = true,
+	["Boots of the Redeemed Prophecy"] = true,
+	["Boots of the Unwavering Will"] = true,
+	["Amulet of Foul Warding"] = true,
+	["Pentant of the Qiraji Guardian"] = true,
+	["Hammer of Ji'zhi"] = true,
+	["Staff of the Qiraji Prophets"] = true,
+	["Guise of the Devourer"] = true,
+	["Ternary Mantle"] = true,
+	["Cape of the Trinity"] = true,
+	["Robes of the Triumvirate"] = true,
+	["Triad Girdle"] = true,
+	["Angelista's Charm"] = true,
+	["Gloves of Ebru"] = true,
+	["Ooze-ridden Gauntlets"] = true,
+	["Mantle of Phrenic Power"] = true,
+	["Mantle of the Fallen Prophet"] = true,
+	["Mantle of the Redeemed Prophecy"] = true,
+	["Ukko's Ring of Darkness"] = true,
+	["Ring of the Devoured"] = true,
+	["Wand of Qiraji Nobility"] = true,
+	["Creeping Vine Helm"] = true,
+	["Necklace of Purity"] = true,
+	["Robes of the Battleguard"] = true,
+	["Gloves of Enforcement"] = true,
+	["Gauntlets of Steadfast Determination"] = true,
+	["Thick Qirajihide Belt"] = true,
+	["Leggings of the Festering Swarm"] = true,
+	["Scaled Leggings of Qiraji Fury"] = true,
+	["Recomposed Boots"] = true,
+	["Silithid Claw"] = true,
+	["Mantle of Wicked Revenge"] = true,
+	["Pauldrons of the Unrelenting"] = true,
+	["Robes of the Guardian Saint"] = true,
+	["Cloak of Untold Secrets"] = true,
+	["Silithid Carapace Chestguard"] = true,
+	["Scaled Sand Reaver Leggings"] = true,
+	["Hive Tunneler's Boots"] = true,
+	["Barb of the Sand Reaver"] = true,
+	["Fetish of the Sand Reaver"] = true,
+	["Libram of Grace"] = true,
+	["Totem of Life"] = true,
+	["Gauntlets of Kalimdor"] = true,
+	["Gauntlets of the Righteous Champion"] = true,
+	["Slime-coated Leggings"] = true,
+	["Idol of Health"] = true,
+	["Qiraji Bindings of Command"] = true,
+	["Cloak of the Golden Hive"] = true,
+	["Hive Defiler Wristguards"] = true,
+	["Gloves of the Messiah"] = true,
+	["Wasphide Gauntlets"] = true,
+	["Huhuran's Stinger"] = true,
+	["Vek'nilash's Circlet"] = true,
+	["Bracelets of Royal Redemption"] = true,
+	["Gloves of the Hidden Temple"] = true,
+	["Regenerating Belt of Vek'nilash"] = true,
+	["Grasp of the Fallen Emperor"] = true,
+	["Belt of the Fallen Emperor"] = true,
+	["Qiraji Execution Bracers"] = true,
+	["Vek'lor's Gloves of Devastation"] = true,
+	["Royal Qiraji Belt"] = true,
+	["Boots of Epiphany"] = true,
+	["Ring of Emperor Vek'lor"] = true,
+	["Ouro's Intact Hide"] = true,
+	["Don Rioberto's Lost Hat"] = true,
+	["Burrower Bracers"] = true,
+	["Larvae of the Great Worm"] = true,
+	["Wormhide Boots"] = true,
+	["Wormscale Stompers"] = true,
+	["Wormhide Protector"] = true,
+	["Base of Atiesh"] = true,
+	["Garb or Royal Ascension"] = true,
+	["Gloves of the Immortal"] = true,
+	["Gloves of the Redeemed Prophecy"] = true,
+	["Neretzek, The Blood Drinker"] = true,
+	["Anubisath Warhammer"] = true,
+	["Ritssyn's Ring of Chaos"] = true,
+	
+	-- Aq20
+	["Example Item"] = true,
+
+	-- Blackwing Lair
+	["Elementium Ore"] = true,
+	["Pendant of the Fallen Dragon"] = true,
+	["Head of the Broodlord Lashlayer"] = true,
+	["Venomous Totem"] = true,
+	["Ring of Blackrock"] = true,
+	["Black Ash Robe"] = true,
+	["Aegis of Preservation"] = true,
+	["Emberweave Legguards"] = true,
+	["Dragon's Touch"] = true,
+	["Shadow Wing Focus Staff"] = true,
+	["Girdle of the Fallen Crusader"] = true,
+	["Shimmering Geta"] = true,
+	["Head of Nefarian (Alliance)"] = true,
+	["Head of Nefarian (Horde)"] = true,
+	["Head of Nefarian"] = true,
+	["Band of Dark Dominion"] = true,
+	["Cloak of Draconic Might"] = true,
+	["Doom's Edge"] = true,
+	["Draconic Avenger"] = true,
+	["Draconic Maul"] = true,
+	["Essence Gatherer"] = true,
+	["Interlaced Shadow Jerkin"] = true,
+	["Ringo's Blizzard Boots"] = true,
+	["Spine Shatter"] = true,
+	["Gloves of Rapid Evolution"] = true,
+	["Mantle of the Blackwing Cabal"] = true,
+	["Rune of Metamorphosis"] = true,
+	["Dragonfang Blade"] = true,
+	["Heartstriker"] = true,
+	["Cloak of Firemaw"] = true,
+	["Drake Talon Pauldrons"] = true,
+	["Firemaw's Clutch"] = true,
+	["Taut Dragonhide Belt"] = true,
+	["Primalist's Linked Legguards"] = true,
+	["Legguards of the Fallen Crusader"] = true,
+	["Claw of the Black Drake"] = true,
+	["Drake Talon Cleaver"] = true,
+	["Malfurion's Blessed Bulwark"] = true,
+	["Herald of Woe"] = true,
+	["Shroud of Pure Thought"] = true,
+	["Taut Dragonhide Gloves"] = true,
+	["Primalist's Linked Waistguard"] = true,
+
+
+	-- Molten Core
+	["Helm of the Lifegiver"] = true,
+	["Robe of Volatile Power"] = true,
+	["Wristguards of Stability"] = true,
+	["Manastorm Leggings"] = true,
+	["Salamander Scale Pants"] = true,
+	["Flamewaker Legplates"] = true,
+	["Heavy Dark Iron Ring"] = true,
+	["Ring of Spell Power"] = true,
+	["Crimson Shocker"] = true,
+	["Sorcerous Dagger"] = true,
+	["Primal Flameslinger"] = true,
+	["Fist of the Flamewaker"] = true,
+	["Shroud of Flowing Magma"] = true,
+	["Choker of Enlightenment"] = true,
+	["Medallion of Steadfast Might"] = true,
+	["Deep Earth Spaulders"] = true,
+	["Aged Core Leather Gloves"] = true,
+	["Flameguard Gauntlets"] = true,
+	["Mana Igniting Cord"] = true,
+	["Sabatons of the Flamewalker"] = true,
+	["Magma Tempered Boots"] = true,
+	["Fire Runed Grimoire"] = true,
+	["Eskhandar's Right Claw"] = true,
+	["Obsidian Edged Blade"] = true,
+	["Drillborer Disk"] = true,
+	["Gutgore Ripper"] = true,
+	["Aurastone Hammer"] = true,
+	["Brutality Blade"] = true,
+	["Seal of the Archmagus"] = true,
+	["Blastershot Launcher"] = true,
+	["Treads of Scalding Rage"] = true,
+	["Grasp of Sundering Power"] = true,
+	["Emberwoven Binding Garments"] = true,
+	["Smoldaris' Fractured Eye"] = true,
+	["Molten Emberstone"] = true,
+	["Overheated Skyrazors"] = true,
+	["Leggings of the Deep Delves"] = true,
+	["Libram of Final Judgement"] = true,
+	["Shadowstrike"] = true,
+	["Thunderstrike"] = true,
+	["Ancient Petrified Leaf"] = true,
+	["The Eye of Divinity"] = true,
+	["Fireguard Shoulders"] = true,
+	["Fireproof Cloak"] = true,
+	["Gloves of the Hypnotic Flame"] = true,
+	["Sash of Whispered Secrets"] = true,
+	["Wristguards of True Flight"] = true,
+	["Core Forged Greaves"] = true,
+	["Finkle's Lava Dredger"] = true,
+	["Cloak of the Shrouded Mists"] = true,
+	["Dragon's Blood Cape"] = true,
+	["Malistar's Defender"] = true,
+	["Spinal Reaper"] = true,
+	["Lavashard Axe"] = true,
+	["Boots of Blistering Flames"] = true,
+	["Core Forged Helmet"] = true,
+	["Lost Dark Iron Chain"] = true,
+	["Shoulderpads of True Flight"] = true,
+	["Girdle of Prophecy"] = true,
+	["Vambraces of Prophecy"] = true,
+	["Arcanist Belt"] = true,
+	["Arcanist Bindings"] = true,
+	["Felheart Belt"] = true,
+	["Felheart Bracers"] = true,
+	["Nightslayer Belt"] = true,
+	["Nightslayer Bracelets"] = true,
+	["Cenarion Belt"] = true,
+	["Cenarion Bracers"] = true,
+	["Giantstalker's Belt"] = true,
+	["Giantstalker's Bracers"] = true, 
+	["Earthfury Belt"] = true,
+	["Earthfury Bracers"] = true,
+	["Lawbringer Belt"] = true,
+	["Lawbringer Bracers"] = true,
+	["Belt of Might"] = true,
+	["Bracers of Might"] = true,	
+	
+	-- Emerald Sanctum
+	["Sandals of Lucidity"] = true,
+	["Smoldering Dream Essence"] = true,
+	["Nature's Call"] = true,
+	["Lucid Nightmare"] = true,
+	["Verdant Dreamer's Boots"] = true,
+	["Nature's Gift"] = true,
+	["Infused Wildthorn Bracers"] = true,
+	["Sleeper's Ring"] = true,
+	["Emerald Rod"] = true,
+	["Axe of Dormant Slumber"] = true,
+	["Scaleshield of Emerald Flight"] = true,
+	["Staff of the Dreamer"] = true,
+	["Aspect of Seradane"] = true,
+	["Talonwind Gauntlets"] = true,
+	["Veil of Nightmare"] = true,
+	["Idol of the Emerald Rot"] = true,
+	["Jadestone Helmet"] = true,
+	["Mallet of the Awakening"] = true,
+	["Libram of the Dreamguard"] = true,
+	["Naturecaller's Tunic"] = true,
+	["Jadestone Protector"] = true,
 }
 
 -- for the ML ui stuff. 
@@ -333,9 +602,17 @@ local function isItemInLCTables(itemName)
     return false
 end
 
-local function isItemInRecipeTables(itemName)
+local function isItemInExceptionTables(itemName)
 	-- Check recipes (not >= epic threshold)
 	if trackedRecipes[itemName] then
+		return true
+	elseif alwaysPostItem[itemName] then
+		return true
+	end
+end
+
+local function isItemInBlacklistTables(itemName)
+	if neverPostItem[itemName] then
 		return true
 	end
 end
@@ -355,29 +632,29 @@ local function topFiveWishListForItem(itemName)
 
     -- Check HKSBossLCData (boss → items)
     for _, bossTable in pairs(HKSBossLCData) do
-        local list = bossTable[itemName]
+        local list = bossTable and bossTable[itemName]
         if list then
             return getTop5(list)
         end
     end
 
     -- Check HKSTierNeckLCData (flat table)
-    local list = HKSTierNeckLCData[itemName]
+    local list = HKSTierNeckLCData and HKSTierNeckLCData[itemName]
     if list then
         return getTop5(list)
     end
 
     -- Check HKSTrashLootLCData (flat table)
-    local list2 = HKSTrashLootLCData[itemName]
+    local list2 = HKSTrashLootLCData and HKSTrashLootLCData[itemName]
     if list2 then
         return getTop5(list2)
     end
 	
 	-- check whoDidItLCData (flat table) (for ambershire people so far)
-	local list3 = whoDidItLCData[itemName] 
-    if list3 then
-        return getTop5(list3)
-    end
+	local list3 = whoDidItLCData and whoDidItLCData[itemName]
+	if list3 then
+		return getTop5(list3)
+	end
 	
     return nil
 end
@@ -646,7 +923,7 @@ function HKSLootCouncil_OnEvent(event)
 			local color = string.sub(itemLink, 5, 10) -- grabs 6 hex digits after |cff
 			local _, _, itemName = string.find(itemLink, "%[(.+)%]")
 
-			DEFAULT_CHAT_FRAME:AddMessage("Item: " .. (itemName or "?") .. " | Color: " .. color)
+			--DEFAULT_CHAT_FRAME:AddMessage("Item: " .. (itemName or "?") .. " | Color: " .. color) -- Just to test it
 		end
 		
 	elseif event == "LOOT_CLOSED" then
@@ -681,13 +958,17 @@ function HKSLootCouncil_OnEvent(event)
 	elseif event == "CHAT_MSG_SYSTEM" and string.find(arg1, "trades item") then
 		local zone = GetRealZoneText()
 		if zone == "Tower of Karazhan" or zone == "The Rock of Desolation" or zone == "Molten Core" or zone == "Ruins of Ahn'Qiraj"
-		or zone == "Temple of Ahn'Qiraj" or zone == "Blackwing Lair" or zone == "Emerald Sanctum" then
-			-- Sending loot messages to custom channel. Hkschatbot reads and sends to discord channel.
+		or zone == "Temple of Ahn'Qiraj" or zone == "Blackwing Lair" or zone == "Emerald Sanctum" or zone == "Naxxramas" or zone == "The Upper Necropolis" then
+			-- Sending loot messages to custom channel. Hkschatbot reads and sends to discord channel.		
 			local m, p, r = GetLootMethod()
 			local discord = HKSLootCouncilOptions.DiscordMSG
-			if (m == "master" and ( (p and p == 0) or (r and r == 0) ) and discord)
-			or (discord and itemName == "Heart of Mephistroth")
-			then -- Only send msg to this channel if you are loot master yourself. (in case more ppl have addon). then -- Only send msg to this channpl have addon).
+			local postWhenNotML = HKSLootCouncilOptions.PostWhenNotML
+			
+			if (discord and (
+				(m == "master" and ((p and p == 0) or (r and r == 0))) -- you're master looter
+				or isItemInExceptionTables(itemName)                   -- item is exception
+				or postWhenNotML                                       -- always post even if not ML
+			)) then
 				local ch = HKSLC_ChannelID()
 				if ch then
 					SendChatMessage(arg1, "CHANNEL", nil, ch)
@@ -715,12 +996,16 @@ function HKSLootCouncil_OnEvent(event)
 						HKSPrint(arg1custom)
 					end
 					
-					-- Sending loot messages to custom channel. Hkschatbot reads and sends to discord channel.
+					-- Sending loot messages to custom channel. Hkschatbot reads and sends to discord channel.					
 					local m, p, r = GetLootMethod()
 					local discord = HKSLootCouncilOptions.DiscordMSG
-					if (m == "master" and ( (p and p == 0) or (r and r == 0) ) and discord)
-					or (discord and itemName == "Heart of Mephistroth")
-					then -- Only send msg to this channel if you are loot master yourself. (in case more ppl have addon). or if you are not, but have discord messages enabled and a specific item is looted.
+					local postWhenNotML = HKSLootCouncilOptions.PostWhenNotML
+					
+					if (discord and (
+						(m == "master" and ((p and p == 0) or (r and r == 0))) -- you're master looter
+						or isItemInExceptionTables(itemName)                   -- item is exception
+						or postWhenNotML                                       -- always post even if not ML
+					)) then		
 						local ch = HKSLC_ChannelID()
 						if ch then
 							SendChatMessage(arg1custom2, "CHANNEL", nil, ch)
@@ -745,9 +1030,13 @@ function HKSLootCouncil_OnEvent(event)
 					-- Sending loot messages to custom channel. Hkschatbot reads and sends to discord channel.
 					local m, p, r = GetLootMethod()
 					local discord = HKSLootCouncilOptions.DiscordMSG
-					if (m == "master" and ( (p and p == 0) or (r and r == 0) ) and discord)
-					or (discord and itemName == "Heart of Mephistroth")
-					then -- Only send msg to this channel if you are loot master yourself. (in case more ppl have addon). or if you are not, but have discord messages enabled and a specific item is looted.
+					local postWhenNotML = HKSLootCouncilOptions.PostWhenNotML
+					
+					if (discord and (
+						(m == "master" and ((p and p == 0) or (r and r == 0))) -- you're master looter
+						or isItemInExceptionTables(itemName)                   -- item is exception
+						or postWhenNotML                                       -- always post even if not ML
+					)) then
 						local ch = HKSLC_ChannelID()
 						if ch then
 							SendChatMessage(arg1, "CHANNEL", nil, ch)
@@ -756,7 +1045,8 @@ function HKSLootCouncil_OnEvent(event)
 				end
 			end
 		------------------------------------------------- All other zones. ------------------------------------------------------------
-		elseif zone == "Molten Core" or zone == "Ruins of Ahn'Qiraj" or zone == "Temple of Ahn'Qiraj" or zone == "Blackwing Lair" or zone == "Emerald Sanctum" then
+		elseif zone == "Molten Core" or zone == "Ruins of Ahn'Qiraj" or zone == "Temple of Ahn'Qiraj" or zone == "Ahn'Qiraj" or zone == "Blackwing Lair" or zone == "Emerald Sanctum" 
+		or zone == "Naxxramas" or zone == "The Upper Necropolis" then
 			if string.find(arg1, "You receive loot") then
 				local _, _, itemLink = string.find(arg1, "(\124c.-\124h%[.+%]\124h\124r)") -- GPT made this shit, but it works.
 				if itemLink then
@@ -764,15 +1054,18 @@ function HKSLootCouncil_OnEvent(event)
 					local _, _, itemName = string.find(itemLink, "%[(.+)%]")
 					local arg1custom = playerClassColorName .. " receives: " .. itemLink .. "." -- Show playerName with class color in HKSPrint msg.
 					local arg1custom2 = playerName .. " receives: " .. itemLink .. "." -- We dont need to send color formatted name to a channel that cant handle the formatting anyway. Just to be safe.
-					if isItemInRecipeTables(itemName) or color == "a335ee" or color == "ff8000" then -- Check for custom blues (recipes so far) or epic and legendary items.
+					if (isItemInExceptionTables(itemName) or color == "a335ee" or color == "ff8000") and not isItemInBlacklistTables(itemName) then -- Check for custom blues (recipes so far) or epic and legendary items.
 				
 						-- Sending loot messages to custom channel. Hkschatbot reads and sends to discord channel.
 						local m, p, r = GetLootMethod()
 						local discord = HKSLootCouncilOptions.DiscordMSG
-						if (m == "master" and ( (p and p == 0) or (r and r == 0) ) and discord)
-						or (discord and itemName == "Heart of Mephistroth")
-						then -- Only send msg to this channel if you are loot master yourself. (in case more ppl have addon). or if you are not, but have discord messages enabled and a specific item is looted.
-							local ch = HKSLC_ChannelID()
+						local postWhenNotML = HKSLootCouncilOptions.PostWhenNotML
+						
+						if (discord and (
+							(m == "master" and ((p and p == 0) or (r and r == 0))) -- you're master looter
+							or isItemInExceptionTables(itemName)                   -- item is exception
+							or postWhenNotML                                       -- always post even if not ML
+						)) then
 							if ch then
 								SendChatMessage(arg1custom2 .. " → " .. zone .. ".", "CHANNEL", nil, ch)
 							end
@@ -795,13 +1088,17 @@ function HKSLootCouncil_OnEvent(event)
 					local _, _, itemName = string.find(itemLink, "%[(.+)%]")
 					local _, _, pName = string.find(arg1, "(.+) receives loot:")
 					if not pName or not itemName then return end
-					if isItemInRecipeTables(itemName) or color == "a335ee" or color == "ff8000" then -- Check for custom blues (recipes so far) or epic and legendary items.
+					if (isItemInExceptionTables(itemName) or color == "a335ee" or color == "ff8000") and not isItemInBlacklistTables(itemName) then -- Check for custom blues (recipes so far) or epic and legendary items.
 						-- Sending loot messages to custom channel. Hkschatbot reads and sends to discord channel.
 						local m, p, r = GetLootMethod()
 						local discord = HKSLootCouncilOptions.DiscordMSG
-						if (m == "master" and ( (p and p == 0) or (r and r == 0) ) and discord)
-						or (discord and itemName == "Heart of Mephistroth")
-						then -- Only send msg to this channel if you are loot master yourself. (in case more ppl have addon).
+						local postWhenNotML = HKSLootCouncilOptions.PostWhenNotML
+						
+						if (discord and (
+							(m == "master" and ((p and p == 0) or (r and r == 0))) -- you're master looter
+							or isItemInExceptionTables(itemName)                   -- item is exception
+							or postWhenNotML                                       -- always post even if not ML
+						)) then
 							local ch = HKSLC_ChannelID()
 							if ch then
 								SendChatMessage(arg1 .. " → " .. zone .. ".", "CHANNEL", nil, ch)
